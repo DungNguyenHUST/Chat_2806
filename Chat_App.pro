@@ -5,12 +5,16 @@ QT += dbus
 QT += sql
 QT += core
 QT +=multimedia
+QT += dbus widgets
 CONFIG += c++11
 
 SOURCES += \
-    chat.cpp
+    chat.cpp \
+    chat_adaptor.cpp \
+    chat_interface.cpp
 
 RESOURCES += qml.qrc
+
 
 # Additional import path used to resolve QML modules in Qt Creator's code model
 QML_IMPORT_PATH =
@@ -19,4 +23,6 @@ QML_IMPORT_PATH =
 include(deployment.pri)
 
 HEADERS += \
-    chat.h
+    chat.h \
+    chat_adaptor.h \
+    chat_interface.h

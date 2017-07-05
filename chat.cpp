@@ -1,4 +1,8 @@
 #include "chat.h"
+#include "chat_adaptor.h"
+#include "chat_interface.h"
+#include <QApplication>
+#include <QMessageBox>
 #include <QGuiApplication>
 #include <QQmlApplicationEngine>
 #include <QQmlContext>
@@ -8,102 +12,116 @@
 #include <QCoreApplication>
 #include <QDBusInterface>
 
-Chat::Chat(QObject *parent,QString username, char * start):
-    QObject(parent),m_iface(SERVICE_NAME+ QString (start),"/","",QDBusConnection::sessionBus())
+ChatMain::ChatMain()
 {
-    m_start = start;
-    m_username = username;
-    qDebug()<< username;
-    m_data= QSqlDatabase::addDatabase("QSQLITE");
-    m_data.setDatabaseName("chat.sql");
-    m_data.open();
-    m_query= QSqlQuery(m_data);
+    m_username = "username";
+    // create SQLite and open database
+    m_dataBase= QSqlDatabase::addDatabase("QSQLITE");
+    m_dataBase.setHostName(DATABASE_HOSTNAME);
+    m_dataBase.setDatabaseName(DATABASE_NAME);
+    m_dataBase.open();
+    m_query= QSqlQuery(m_dataBase);
     m_query.exec("create table if not exists tableMessage\
-                                (id integer primary key,\ username varchar(50),\ message varchar(255),\ time timestamp\)\
+                                (id integer primary key,\ username varchar(255),\ text varchar(255),\ time timestamp)\
                                 " );
-      QDBusConnection::sessionBus().registerObject("/", this);
-      QDBusConnection::sessionBus().connect(QString(),QString(),SERVICE_NAME,"message",this,SLOT(messageSlot(QString,QString)));
+
+     // add dbus interface and initial dbus
+     new ChatAdaptor(this);
+     QDBusConnection::sessionBus().registerObject("/", this);
+     org::example::chat *iface;
+     iface = new org::example::chat(QString(), QString(), QDBusConnection::sessionBus(), this);
+     QDBusConnection::sessionBus().connect(QString(), QString(), "org.example.chat", "message", this, SLOT(messageSlot(QString,QString)));
+     connect(iface, SIGNAL(action(QString,QString)), this, SLOT(actionSlot(QString,QString)));
 }
 
-Chat::~Chat()
+ChatMain::~ChatMain()
 {
-
+    m_dataBase.close();
 }
 
-void Chat::loadMessageFromSQL(QString username)
+// store in QString list after send click
+void ChatMain::updateHistory()
 {
-m_query = QSqlQuery("SELECT *FROM tableMessage");
-    while(m_query.next())
-    {
-    sendToQml(m_query.value(1).toString(),m_query.value(2).toString(),m_query.value(3).toString());
-    }
+    QString current = m_message.last();
+    m_nowTime  = QDateTime::currentDateTime();
+    sendDataToQml(">>"+ m_nowTime.toString() +">"+ current );
 }
 // receive message from QML
-void Chat::receiveFromQml(QString message)
+void ChatMain :: receiveMessageFromQml(QString text)
 {
-   sendMessage(m_username,message);
-   qDebug()<<message;
+    m_nowTime  = QDateTime::currentDateTime();
+    storeDataIntoSQL(m_username,text,m_nowTime);
+    sendMessage(text);
+    if (text == "exit")
+    {
+        exitChat();
+    }
+}
+// set user name after receive from QML
+void ChatMain :: receiveUserNameFromQml(QString username)
+{
+   emit action(username,QLatin1String (" JOINED TO THE CHAT ROOM"));
+   m_username = username;
 }
 
-void Chat::messageSlot(QString username, QString message)
+void ChatMain::messageSlot(QString username, QString text)
 {
     QString msg(QLatin1String ("<%1 %2"));
-    msg = msg.arg(username,message);
+    msg = msg.arg(username,text);
     m_message.append(msg);
-    if (m_message.count()>100)
+
+    if (m_message.count() >100)
     {
         m_message.removeFirst();
     }
+    updateHistory();
 }
-// send message in DBUS
-void Chat::sendMessage(QString username,QString message)
+
+void ChatMain::actionSlot(QString username, QString text)
 {
-    if (m_iface.isValid())
+    QString msg( QLatin1String("* %1 %2") );
+    msg = msg.arg(username,text);
+    m_message.append(msg);
+    if (m_message.count() > 100)
     {
-        QDBusReply <QString> reply = m_iface.call("sendMessage",username,message);
-        if (!reply.isValid())
-        {
-        fprintf(stderr,"%s\n",qPrintable(QDBusConnection::sessionBus().lastError().message()));
-        }
+        m_message.removeFirst();
     }
-    QDBusMessage msg = QDBusMessage::createSignal("/",SERVICE_NAME,"message");
+    updateHistory();
+}
+
+void ChatMain::exitChat()
+{
+    emit action(m_username,QLatin1String (" LEAVE THE CHAT ROOM"));
+    QApplication::quit();
+}
+
+// send message in DBUS
+void ChatMain::sendMessage(QString text)
+{
+    QDBusMessage msg = QDBusMessage::createSignal("/", "org.example.chat", "message");
+    msg<<m_username<<text;
     QDBusConnection::sessionBus().send(msg);
-    postMessage(message);
-
 }
-
-//post message in QML
-void Chat::postMessage(QString message)
+// store meesage in SQL, insert into table
+void ChatMain::storeDataIntoSQL( QString username,QString text, QDateTime time)
 {
-m_nowTime = QDateTime::currentDateTime();
-storeMessage(m_username,message,m_nowTime);
-loadMessageFromSQL(m_username);
-}
-
-void Chat::storeMessage(QString username, QString message, QDateTime time)
-{
-    time  = QDateTime::currentDateTime();
-    m_query.prepare("INSERT INTO tableMessage(username, message, time) \
-                    values(:username,:message,:time)");
-
-    m_query.bindValue(":username", username);
-    m_query.bindValue(":message", message);
+    username = m_username;
+    m_query.prepare("INSERT INTO tableMessage( username,text, time)\ values(:username, :text , :time)") ;
+    m_query.bindValue(":username",username);
+    m_query.bindValue(":text", text);
     m_query.bindValue(":time", time);
     m_query.exec();
-
 }
 
 int main(int argc, char *argv[])
 {
-    char *start;
     QGuiApplication app(argc, argv);
-
-    QString username = "";
-    Chat chat(0,username,start);
+    ChatMain chatMain;
     QQmlApplicationEngine chatWindow;
     chatWindow.load(QUrl(QStringLiteral("qrc:/main.qml")));
     QQmlContext*context = chatWindow.rootContext();
-    context->setContextProperty("chat",&chat);
+    context->setContextProperty("chatMain",&chatMain);
+
     if (!QDBusConnection::sessionBus().isConnected())
     {
         qWarning("Cannot connect to the DBus .\n");
@@ -114,7 +132,6 @@ int main(int argc, char *argv[])
         qWarning("Cannot found database. \n");
         return 1;
     }
-
     return app.exec();
 }
 

@@ -8,39 +8,46 @@
 #include <QtSql>
 #include <QSql>
 
-#define SERVICE_NAME "lge.example.QtDBus.chatExample"
+#define SERVICE_NAME "org.example.chat"
 
-class Chat : public QObject
+#define DATABASE_HOSTNAME "ChatDataBase"
+#define DATABASE_NAME "Chat.db"
+
+class ChatMain : public QObject
 {
     Q_OBJECT
 
 public:
-    explicit Chat(QObject * parent,QString username, char* start);
-    virtual ~Chat();
+    explicit ChatMain();
+    virtual ~ChatMain();
 
-    void loadMessageFromSQL(QString username);
-    void postMessage(QString message);
-    void sendMessage(QString username,QString message);
-    void storeMessage(QString username,QString message, QDateTime time);
+    void updateHistory();
+    void sendMessage(QString text);
+
+    // store data in the SQL
+    void storeDataIntoSQL(QString username,QString text, QDateTime time);
 
 signals:
-    void action(QString username,QString message);
-    void message(QString username,QString message );
-    void sendToQml(QString username, QString message, QString time);
+
+    void action(const QString &username,const QString &text);
+    void message(const QString &username,const QString &text );
+
+    void sendDataToQml(QString data);
 
 public slots:
-    void receiveFromQml (QString message);
-    void messageSlot (QString username,QString message);
+    void receiveMessageFromQml (QString text);
+    void receiveUserNameFromQml(QString username);
+    void messageSlot (QString username,QString text);
+    void actionSlot(QString username,QString text);
+
+    void exitChat();
 
 private:
-    QString m_start;
     QString m_username;
     QStringList m_message;
-    QDBusInterface m_iface;
-    QDateTime m_nowTime;
+    QDateTime m_nowTime ;
     QSqlQuery m_query;
-    QSqlDatabase m_data;
-
+    QSqlDatabase m_dataBase;
 };
 
 #endif // CHAT_H
