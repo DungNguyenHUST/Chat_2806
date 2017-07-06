@@ -1,6 +1,6 @@
 #include "chat.h"
-#include "chat_adaptor.h"
-#include "chat_interface.h"
+#include "dbus_adaptor.h"
+#include "dbus_interface.h"
 #include <QApplication>
 #include <QMessageBox>
 #include <QGuiApplication>
@@ -24,9 +24,11 @@ ChatMain::ChatMain()
     m_query.exec("create table if not exists tableMessage\
                                 (id integer primary key,\ username varchar(255),\ text varchar(255),\ time timestamp)\
                                 " );
+      player = new QMediaPlayer;
+      player ->setMedia(QUrl::fromLocalFile("/home/dungnguyen/Downloads/facebook.wav"));
 
      // add dbus interface and initial dbus
-     new ChatAdaptor(this);
+     new DBusAdaptor(this);
      QDBusConnection::sessionBus().registerObject("/", this);
      org::example::chat *iface;
      iface = new org::example::chat(QString(), QString(), QDBusConnection::sessionBus(), this);
@@ -74,6 +76,7 @@ void ChatMain::messageSlot(QString username, QString text)
     {
         m_message.removeFirst();
     }
+    player ->play();
     updateHistory();
 }
 
@@ -115,9 +118,11 @@ void ChatMain::storeDataIntoSQL( QString username,QString text, QDateTime time)
 
 void ChatMain::loadDataFromSQL(QString key)
 {
-    if (key == "load history"){
+    if (key == "load data")
+    {
     m_query = QSqlQuery("SELECT * FROM tableMessage");
-    while (m_query.next()) {
+    while (m_query.next())
+    {
         sendDataToQml(m_query.value(1).toString()+" * "+m_query.value(2).toString()+" * "+m_query.value(3).toString());
     }
     }

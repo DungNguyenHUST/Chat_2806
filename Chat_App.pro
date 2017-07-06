@@ -10,8 +10,8 @@ CONFIG += c++11
 
 SOURCES += \
     chat.cpp \
-    chat_adaptor.cpp \
-    chat_interface.cpp
+    dbus_adaptor.cpp \
+    dbus_interface.cpp
 
 RESOURCES += qml.qrc
 
@@ -24,8 +24,9 @@ include(deployment.pri)
 
 HEADERS += \
     chat.h \
-    chat_adaptor.h \
-    chat_interface.h
+    dbus_adaptor.h \
+    dbus_interface.h
 
 DISTFILES += \
-    LG.gif
+    LG.gif \
+    ../Downloads/facebook.mp3

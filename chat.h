@@ -7,6 +7,7 @@
 #include <QtDBus>
 #include <QtSql>
 #include <QSql>
+#include <QMediaPlayer>
 
 #define SERVICE_NAME "org.example.chat"
 
@@ -26,7 +27,6 @@ public:
 
     // store data in the SQL
     void storeDataIntoSQL(QString username,QString text, QDateTime time);
-
 
 signals:
 
@@ -52,6 +52,8 @@ private:
     QTime m_currentTime;
     QSqlQuery m_query;
     QSqlDatabase m_dataBase;
+
+    QMediaPlayer *player;
 };
 
 #endif // CHAT_H

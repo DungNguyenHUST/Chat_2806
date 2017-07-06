@@ -5,6 +5,7 @@ import QtQuick.Controls 1.4
 import QtQuick.Controls 2.0
 import QtQuick 2.2
 import QtQuick.Dialogs 1.1
+import QtMultimedia 5.5
 
 Window {
     visible: true
@@ -133,7 +134,9 @@ Rectangle
        target: chatMain
        onSendDataToQml:
        {
+           // notifySound.play();
            messageModel.append({message:data});
+
        }
    }
      Rectangle
@@ -299,4 +302,9 @@ Rectangle
        }
     }
   }
+    Audio
+    {
+        id : notifySound
+        source: "qrc:/../Downloads/facebook.wav"
+    }
 }

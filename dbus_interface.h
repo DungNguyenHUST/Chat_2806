@@ -12,10 +12,7 @@
 #include <QtCore/QVariant>
 #include <QtDBus/QtDBus>
 
-/*
- * Proxy class for interface org.example.chat
- */
-class OrgExampleChatInterface: public QDBusAbstractInterface
+class DBusInterface: public QDBusAbstractInterface
 {
     Q_OBJECT
 public:
@@ -23,9 +20,9 @@ public:
     { return "org.example.chat"; }
 
 public:
-    OrgExampleChatInterface(const QString &service, const QString &path, const QDBusConnection &connection, QObject *parent = 0);
+    DBusInterface(const QString &service, const QString &path, const QDBusConnection &connection, QObject *parent = 0);
 
-    ~OrgExampleChatInterface();
+    ~DBusInterface();
 
 public Q_SLOTS: // METHODS
 Q_SIGNALS: // SIGNALS
@@ -35,7 +32,7 @@ Q_SIGNALS: // SIGNALS
 
 namespace org {
   namespace example {
-    typedef ::OrgExampleChatInterface chat;
+    typedef ::DBusInterface chat;
   }
 }
 #endif

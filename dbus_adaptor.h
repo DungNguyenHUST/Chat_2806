@@ -13,7 +13,7 @@ class QStringList;
 class QVariant;
 QT_END_NAMESPACE
 
-class ChatAdaptor: public QDBusAbstractAdaptor
+class DBusAdaptor: public QDBusAbstractAdaptor
 {
     Q_OBJECT
     Q_CLASSINFO("D-Bus Interface", "org.example.chat")
@@ -30,8 +30,8 @@ class ChatAdaptor: public QDBusAbstractAdaptor
 "  </interface>\n"
         "")
 public:
-    ChatAdaptor(QObject *parent);
-    virtual ~ChatAdaptor();
+    DBusAdaptor(QObject *parent);
+    virtual ~DBusAdaptor();
 
 public: // PROPERTIES
 public Q_SLOTS: // METHODS
