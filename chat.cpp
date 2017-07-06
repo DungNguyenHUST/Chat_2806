@@ -43,8 +43,8 @@ ChatMain::~ChatMain()
 void ChatMain::updateHistory()
 {
     QString current = m_message.last();
-    m_nowTime  = QDateTime::currentDateTime();
-    sendDataToQml(">>"+ m_nowTime.toString() +">"+ current );
+    m_currentTime = QTime::currentTime();
+    sendDataToQml("->"+ m_currentTime.toString() +">"+ current );
 }
 // receive message from QML
 void ChatMain :: receiveMessageFromQml(QString text)
@@ -70,7 +70,7 @@ void ChatMain::messageSlot(QString username, QString text)
     msg = msg.arg(username,text);
     m_message.append(msg);
 
-    if (m_message.count() >100)
+    if (m_message.count() >150)
     {
         m_message.removeFirst();
     }
@@ -82,7 +82,7 @@ void ChatMain::actionSlot(QString username, QString text)
     QString msg( QLatin1String("* %1 %2") );
     msg = msg.arg(username,text);
     m_message.append(msg);
-    if (m_message.count() > 100)
+    if (m_message.count() > 150)
     {
         m_message.removeFirst();
     }
@@ -111,6 +111,16 @@ void ChatMain::storeDataIntoSQL( QString username,QString text, QDateTime time)
     m_query.bindValue(":text", text);
     m_query.bindValue(":time", time);
     m_query.exec();
+}
+
+void ChatMain::loadDataFromSQL(QString key)
+{
+    if (key == "load history"){
+    m_query = QSqlQuery("SELECT * FROM tableMessage");
+    while (m_query.next()) {
+        sendDataToQml(m_query.value(1).toString()+" * "+m_query.value(2).toString()+" * "+m_query.value(3).toString());
+    }
+    }
 }
 
 int main(int argc, char *argv[])

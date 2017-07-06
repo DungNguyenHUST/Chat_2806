@@ -27,6 +27,7 @@ public:
     // store data in the SQL
     void storeDataIntoSQL(QString username,QString text, QDateTime time);
 
+
 signals:
 
     void action(const QString &username,const QString &text);
@@ -40,12 +41,15 @@ public slots:
     void messageSlot (QString username,QString text);
     void actionSlot(QString username,QString text);
 
+     void loadDataFromSQL(QString key);
+
     void exitChat();
 
 private:
     QString m_username;
     QStringList m_message;
     QDateTime m_nowTime ;
+    QTime m_currentTime;
     QSqlQuery m_query;
     QSqlDatabase m_dataBase;
 };

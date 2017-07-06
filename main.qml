@@ -23,10 +23,13 @@ Window {
         x: 150
         y: 200
     }
-    TextInput
+    TextField
     {
-        x : 150
+        x : 120
         y : 230
+        placeholderText: "Write your nick name in here"
+        width: 320
+        height : 50
         font.pointSize: 12
         id : nickName
         color: "gray"
@@ -38,10 +41,13 @@ Window {
     Button
     {
         text : "OK"
-        x: 270
-        y: 260
+        x: 440
+        y: 230
+        width : 80
+        height : 50
         onClicked:
         {
+            chatMain.loadDataFromSQL("load data")
             chatWindow.visible =! chatWindow.visible
             editNickname.visible =! editNickname.visible
             if (nickName.text != "")
@@ -232,14 +238,16 @@ Rectangle
        visible: false
        width :640
        height:432
+       color: "#f9f9f9"
        x:0
        y:0
-       Image {
+       AnimatedImage {
            id: logo_LG
-           source: "qrc:/../Downloads/lg-logo-300x300.png"
-           width : 300
-           height :300
-           anchors.centerIn: parent
+           source: "qrc:/../Downloads/LG1.gif"
+           width : 320
+           height :180
+           x:160
+           y:150
        }
        Text
        {
@@ -256,7 +264,38 @@ Rectangle
            font.pointSize: 12
            x:135
            y :80
+       }
+       Rectangle
+       {
+           x: 147
+           y: 308
+           width: 342
+           height: 31
+           color: "#f9f9f9"
+       }
 
+       Rectangle {
+           x: 101
+           y: 140
+           width: 80
+           height: 199
+           color: "#f9f9f9"
+       }
+
+       Rectangle {
+           x: 138
+           y: 128
+           width: 342
+           height: 31
+           color: "#f9f9f9"
+       }
+
+       Rectangle {
+           x: 457
+           y: 141
+           width: 80
+           height: 199
+           color: "#f9f9f9"
        }
     }
   }

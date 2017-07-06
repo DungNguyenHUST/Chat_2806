@@ -3,5 +3,7 @@
         <file>main.qml</file>
         <file>../Downloads/Color-LG-Logo.jpg</file>
         <file>../Downloads/lg-logo-300x300.png</file>
+        <file>../Downloads/LG.gif</file>
+        <file>../Downloads/LG1.gif</file>
     </qresource>
 </RCC>

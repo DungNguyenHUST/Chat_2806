@@ -26,3 +26,6 @@ HEADERS += \
     chat.h \
     chat_adaptor.h \
     chat_interface.h
+
+DISTFILES += \
+    LG.gif
